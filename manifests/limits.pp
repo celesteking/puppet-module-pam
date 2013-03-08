@@ -1,5 +1,22 @@
+# Define: pam::limits
+#   Add an entry to pam_limits config file
+#
+# Parameters:
+#
+# [*domain*]
+#
+# [*type*]
+#
+# [*item*]
+#
+# [*value*]
+#
+# [*priority*]
+#
+# [*ensure*]
+#
 define pam::limits (
-  $domain,
+  $domain = $title,
   $type,
   $item,
   $value,
@@ -8,16 +25,17 @@ define pam::limits (
 ) {
   include pam
 
-  if ! ($::osfamily in ['Debian', 'RedHat', 'Suse']) {
-    fail("pam::limits does not support osfamily $::osfamily")
+  $limits_conf = $pam::params::limits_conf
+
+  realize Concat[$limits_conf]
+  
+  if !(!$pam::params::allow_local_mods) {
+    realize Concat::Fragment['limits_conf-local']
   }
+  
+  Concat::Fragment <| title == 'pam-header' |> { target => $limits_conf }
 
-  $limits_conf = $pam::limits_conf
-
-  realize ( Concat[$limits_conf] )
-  Concat::Fragment <| title == 'header' |> { target => $limits_conf }
-
-  concat::fragment { "pam::limits ${domain}-${type}-${item}-${value}":
+  concat::fragment { "pam::limits-${domain}-${type}-${item}-${value}":
     ensure  => $ensure,
     target  => $limits_conf,
     content => "${domain} ${type} ${item} ${value}\n",

@@ -1,27 +1,37 @@
 class pam {
+  include pam::params
   include concat::setup
 
-  $access_conf = '/etc/security/access.conf'
-  $limits_conf = '/etc/security/limits.conf'
-
   # pam_access
-  @concat { $access_conf:
+  @concat { $pam::params::access_conf:
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644',
+  }
+  
+  # pam_limits
+  @concat { $pam::params::limits_conf:
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
   }
 
-  # pam_limits
-  @concat { $limits_conf:
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0644',
+  @concat::fragment{ 'access_conf-local':
+    target => $pam::params::access_conf,
+    ensure  => $pam::params::access_conf_local,
+    order   => 05
+  }
+  
+  @concat::fragment{ 'limits_conf-local':
+    target => $pam::params::limits_conf,
+    ensure  => $pam::params::limits_conf_local,
+    order   => 05
   }
 
   # header
-  @concat::fragment { "header":
+  @concat::fragment { "pam-header":
     target  => undef,
     order   => 01,
-    content => template("pam/header.erb"),
+    content => $pam::params::disclaimer,
   }
 }

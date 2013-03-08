@@ -1,29 +1,48 @@
+# Define: pam::access
+#   Add an entry to pam_access config file
+#
+# Parameters:
+#
+# [*permission*]
+#   Either ("+") or "-".
+#
+# [*entity*]
+#   
+# [*origin*]
+#   Default is "ALL"
+#
+# [*priority*]
+#
+# [*ensure*]
+#
 define pam::access (
-  $permission,
+  $permission = '+',
   $entity     = $title,
-  $origin,
+  $origin     = 'ALL',
   $ensure     = present,
   $priority   = '10'
 ) {
   include pam
 
-  if ! ($::osfamily in ['Debian', 'RedHat', 'Suse']) {
-    fail("pam::access does not support osfamily $::osfamily")
-  }
-
   if ! ($permission in ['+', '-']) {
     fail("Permission must be + or - ; recieved $permission")
   }
 
-  $access_conf = $pam::access_conf
+  $access_conf = $pam::params::access_conf
+  $control_entry = "${permission} : ${entity}\t: ${origin}"
 
   realize Concat[$access_conf]
-  Concat::Fragment <| title == 'header' |> { target => $access_conf }
+  
+  if !(!$pam::params::allow_local_mods) {
+    realize Concat::Fragment['access_conf-local']
+  }
+  
+  Concat::Fragment <| title == 'pam-header' |> { target => $access_conf }
 
-  concat::fragment { "pam::access $permission$entity$origin":
+  concat::fragment { "pam::access-${control_entry}":
     ensure  => $ensure,
     target  => $access_conf,
-    content => "${permission}:${entity}:${origin}\n",
+    content => "${control_entry}\n",
     order   => $priority,
   }
 
