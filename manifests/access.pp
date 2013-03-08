@@ -1,6 +1,6 @@
 define pam::access (
   $permission,
-  $entity,
+  $entity     = $title,
   $origin,
   $ensure     = present,
   $priority   = '10'
@@ -20,7 +20,7 @@ define pam::access (
   realize Concat[$access_conf]
   Concat::Fragment <| title == 'header' |> { target => $access_conf }
 
-  concat::fragment { "pam::access $entity":
+  concat::fragment { "pam::access $permission$entity$origin":
     ensure  => $ensure,
     target  => $access_conf,
     content => "${permission}:${entity}:${origin}\n",
