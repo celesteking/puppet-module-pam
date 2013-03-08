@@ -1,11 +1,10 @@
-name 'pdxcat-pam'
-version '0.0.2'
-source 'https://github.com/pdxcat/puppet-module-pam'
-author 'William Hopper'
+name 'cek-pam'
+version '0.0.3'
+
+author 'William Hopper, Yuri Arabadji'
 license 'Apache License 2.0'
+project_page 'https://github.com/celesteking/puppet-module-pam'
+source 'https://github.com/celesteking/puppet-module-pam'
 summary 'PAM Module for Puppet'
 description 'PAM Module for Puppet'
-project_page 'https://github.com/pdxcat/puppet-module-pam'
-
-## Add dependencies, if any:
-dependency 'ripienaar/concat', '>= 0.1.0'
+dependency 'ripienaar/concat', '>=0.1.0'
